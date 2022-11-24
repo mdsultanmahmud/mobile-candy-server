@@ -26,6 +26,10 @@ async function run(){
     const Users = client.db('MobileCandyDB').collection('users')
     app.post('/users', async (req, res) =>{
         const user = req.body 
+        const existUser = await Users.findOne({email: user.email})
+        if(existUser){
+            return
+        }
         const result = await Users.insertOne(user)
         res.send(result)
     })
