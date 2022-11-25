@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const port = process.env.PORT || 5000
 const cors = require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 // middlewear 
 app.use(cors())
@@ -45,6 +45,14 @@ async function run(){
         const result = await Categories.find(query).toArray()
         res.send(result)
     })
+    app.get('/categories/:id', async(req, res) =>{
+        const id = req.params.id
+        const query = {
+            _id: ObjectId(id)
+        }
+        const result = await Categories.findOne(query)
+        res.send(result)
+    })
     // post a products
     app.post('/products', async(req, res) =>{
         const product = req.body 
@@ -52,6 +60,16 @@ async function run(){
         res.send(result)
     })
 
+    // get products filter with products category 
+    app.get('/products', async(req, res) =>{
+        const categoryName = req.query.category 
+        const query = {
+            category: categoryName
+        }
+        const result = await Products.find(query).toArray()
+        res.send(result)
+    })
+ 
 
 }
 
