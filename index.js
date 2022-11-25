@@ -26,6 +26,7 @@ async function run(){
     const Users = client.db('MobileCandyDB').collection('users')
     const Products = client.db('MobileCandyDB').collection('products')
     const Categories = client.db('MobileCandyDB').collection('categories')
+    const AdvertisedProducts = client.db('MobileCandyDB').collection('advertisedProducts')
     // works with users 
     app.post('/users', async (req, res) =>{
         const user = req.body 
@@ -69,7 +70,24 @@ async function run(){
         const result = await Products.find(query).toArray()
         res.send(result)
     })
+
+    // get prodcuts for seller 
+    app.get('/productsByGmail', async(req, res) =>{
+        const email = req.query.email 
+        const filter = {
+            sellerEmail: email 
+        }
+        const result = await Products.find(filter).toArray()
+        res.send(result)
+    })
  
+    // make a product advertsed
+
+    app.post('/productsAdvertised', async(req, res) =>{
+        const advertisedPro = req.body 
+        const result = await AdvertisedProducts.insertOne(advertisedPro)
+        res.send(result)
+    })
 
 }
 
