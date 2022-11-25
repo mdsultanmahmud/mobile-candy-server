@@ -27,6 +27,7 @@ async function run(){
     const Products = client.db('MobileCandyDB').collection('products')
     const Categories = client.db('MobileCandyDB').collection('categories')
     const AdvertisedProducts = client.db('MobileCandyDB').collection('advertisedProducts')
+    const Bookings = client.db('MobileCandyDB').collection('bookings')
     // works with users 
     app.post('/users', async (req, res) =>{
         const user = req.body 
@@ -129,6 +130,21 @@ async function run(){
     })
 
 
+    // create apis for booking data 
+    app.post('/booking', async(req,res) =>{
+        const bookedProduct = req.body 
+        const result = await Bookings.insertOne(bookedProduct)
+        res.send(result)
+    })
+    app.get('/booking', async(req, res) =>{
+        const userEmail = req.query.email 
+        const query ={
+            email: userEmail
+        }
+        console.log(query)
+        const result = await Bookings.find(query).toArray()
+        res.send(result)
+    })
 
 }
 
