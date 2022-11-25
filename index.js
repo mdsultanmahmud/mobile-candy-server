@@ -25,6 +25,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run(){
     const Users = client.db('MobileCandyDB').collection('users')
     const Products = client.db('MobileCandyDB').collection('products')
+    const Categories = client.db('MobileCandyDB').collection('categories')
     // works with users 
     app.post('/users', async (req, res) =>{
         const user = req.body 
@@ -37,6 +38,13 @@ async function run(){
     })
 
     // works with products and products category 
+    // create category api 
+    // get all categories 
+    app.get('/categories', async(req, res) =>{
+        const query = {}
+        const result = await Categories.find(query).toArray()
+        res.send(result)
+    })
     // post a products
     app.post('/products', async(req, res) =>{
         const product = req.body 
@@ -48,3 +56,4 @@ async function run(){
 }
 
 run().catch(e => console.log(e))
+
