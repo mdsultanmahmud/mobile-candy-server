@@ -46,6 +46,30 @@ async function run(){
         res.send(result)
     })
 
+    // get all buyers 
+    app.get('/buyers', async(req, res) =>{
+        const query = {
+            role: 'Buyer'
+        }
+        const result = await Users.find(query).toArray()
+        res.send(result)
+    })
+
+    app.put('/users/verify/:id', async(req, res) =>{
+        const id = req.params.id 
+        const query = {
+            _id: ObjectId(id)
+        }
+        const option = {upsert: true}
+        const updatedUser = {
+            $set:{
+                isVerified: true
+            }
+        }
+        const result = await Users.updateOne(query, updatedUser, option)
+        res.send(result)
+
+    })
     // works with products and products category 
     // create category api 
     // get all categories 
