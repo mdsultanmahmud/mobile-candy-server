@@ -37,6 +37,14 @@ async function run(){
         const result = await Users.insertOne(user)
         res.send(result)
     })
+    // get all sellers 
+    app.get('/sellers', async(req, res) =>{
+        const query = {
+            role: 'Seller'
+        }
+        const result = await Users.find(query).toArray()
+        res.send(result)
+    })
 
     // works with products and products category 
     // create category api 
@@ -88,6 +96,15 @@ async function run(){
         const result = await AdvertisedProducts.insertOne(advertisedPro)
         res.send(result)
     })
+
+    // get advertised items list 
+    app.get('/productsAdvertised', async(req, res) =>{
+        const query = {}
+        const result = await AdvertisedProducts.find(query).toArray()
+        res.send(result)
+    })
+
+
 
 }
 
