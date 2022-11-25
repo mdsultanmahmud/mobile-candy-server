@@ -24,6 +24,8 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 async function run(){
     const Users = client.db('MobileCandyDB').collection('users')
+    const Products = client.db('MobileCandyDB').collection('products')
+    // works with users 
     app.post('/users', async (req, res) =>{
         const user = req.body 
         const existUser = await Users.findOne({email: user.email})
@@ -33,6 +35,16 @@ async function run(){
         const result = await Users.insertOne(user)
         res.send(result)
     })
+
+    // works with products and products category 
+    // post a products
+    app.post('/products', async(req, res) =>{
+        const product = req.body 
+        const result = await Products.insertOne(product)
+        res.send(result)
+    })
+
+
 }
 
 run().catch(e => console.log(e))
