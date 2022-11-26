@@ -3,8 +3,10 @@ const app = express()
 const port = process.env.PORT || 5000
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
+
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // middlewear 
 app.use(cors())
 app.use(express.json())
@@ -56,7 +58,6 @@ async function run() {
     const Bookings = client.db('MobileCandyDB').collection('bookings')
 
     // create json web token 
-    // console.log(process.env.JWT_TOKEN)
     app.get('/jwt', async (req, res) => {
         const userEmail = req.query.email
         const query = {
@@ -83,14 +84,12 @@ async function run() {
         const result = await Users.insertOne(user)
         res.send(result)
     })
-    app.get('/users/admin', async(req, res) =>{
+    app.get('/users/admin', async (req, res) => {
         const email = req.query.email
         const filter = {
             email: email
         }
-
         const user = await Users.findOne(filter)
-        console.log(user)
         res.send(user)
     })
     // get all sellers 
@@ -160,10 +159,10 @@ async function run() {
     })
 
     // get prodcuts for seller 
-    app.get('/productsByGmail',verifyJWT, async (req, res) => {
+    app.get('/productsByGmail', verifyJWT, async (req, res) => {
         const email = req.query.email
         const decodedEmail = req.decoded.userEmail
-        if(email !== decodedEmail){
+        if (email !== decodedEmail) {
             return res.status(401).send({
                 success: false,
                 message: 'Forbidden Access'
@@ -201,7 +200,7 @@ async function run() {
     app.get('/booking', verifyJWT, async (req, res) => {
         const userEmail = req.query.email
         const decodedEmail = req.decoded.userEmail
-        if(userEmail !== decodedEmail){
+        if (userEmail !== decodedEmail) {
             return res.status(403).send({
                 success: false,
                 message: 'Forbidden access'
@@ -212,6 +211,36 @@ async function run() {
         }
         const result = await Bookings.find(query).toArray()
         res.send(result)
+    })
+
+    // get a specific booking items 
+    app.get('/booking/:id', async (req, res) => {
+        const id = req.params.id
+        const query = {
+            _id: ObjectId(id)
+        }
+        const result = await Bookings.findOne(query)
+        res.send(result)
+
+    })
+
+    // payment method add 
+    app.post('/create-payment-intent', async (req, res) => {
+        const bookedPr = req.body
+        const price = bookedPr.price
+        const amount = price * 100
+        console.log(amount)
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: amount,
+            currency: "usd",
+            "payment_method_types": [
+                "card"
+            ]
+        })
+
+        res.send({
+            clientSecret: paymentIntent.client_secret,
+        });
     })
 
 }
