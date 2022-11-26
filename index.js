@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const port = process.env.PORT || 5000
 const cors = require('cors')
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 // middlewear 
@@ -17,6 +18,12 @@ app.listen(port, () =>{
 })
 
 
+// verify access token 
+const verifyJWT = async(req, res, next) =>{
+    console.log(req.headers.authorization_token)
+}
+
+
 // mongo db starts here
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.p11nzlu.mongodb.net/?retryWrites=true&w=majority`
@@ -28,6 +35,25 @@ async function run(){
     const Categories = client.db('MobileCandyDB').collection('categories')
     const AdvertisedProducts = client.db('MobileCandyDB').collection('advertisedProducts')
     const Bookings = client.db('MobileCandyDB').collection('bookings')
+    
+    // create json web token 
+    // console.log(process.env.JWT_TOKEN)
+    app.get('/jwt', async(req ,res) =>{
+        const userEmail = req.query.email 
+        const query = {
+            email: userEmail
+        }
+        const user = await Users.findOne(query)
+        if(!user){
+            return res.send({
+                success: false,
+                message: 'User is not available in database'
+            })
+        }
+        const token = jwt.sign({userEmail}, process.env.JWT_TOKEN, {expiresIn: '3h'})
+        res.send({accessToken: token})
+    })
+    
     // works with users 
     app.post('/users', async (req, res) =>{
         const user = req.body 
@@ -141,7 +167,6 @@ async function run(){
         const query ={
             email: userEmail
         }
-        console.log(query)
         const result = await Bookings.find(query).toArray()
         res.send(result)
     })
