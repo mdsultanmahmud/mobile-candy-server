@@ -83,6 +83,16 @@ async function run() {
         const result = await Users.insertOne(user)
         res.send(result)
     })
+    app.get('/users/admin', async(req, res) =>{
+        const email = req.query.email
+        const filter = {
+            email: email
+        }
+
+        const user = await Users.findOne(filter)
+        console.log(user)
+        res.send(user)
+    })
     // get all sellers 
     app.get('/sellers', async (req, res) => {
         const query = {
@@ -191,7 +201,6 @@ async function run() {
     app.get('/booking', verifyJWT, async (req, res) => {
         const userEmail = req.query.email
         const decodedEmail = req.decoded.userEmail
-        console.log(userEmail, decodedEmail)
         if(userEmail !== decodedEmail){
             return res.status(403).send({
                 success: false,
