@@ -4,8 +4,8 @@ const port = process.env.PORT || 5000
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
 
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // middlewear 
 app.use(cors())
@@ -56,7 +56,7 @@ async function run() {
     const Categories = client.db('MobileCandyDB').collection('categories')
     const AdvertisedProducts = client.db('MobileCandyDB').collection('advertisedProducts')
     const Bookings = client.db('MobileCandyDB').collection('bookings')
-
+    const PaymentsItem = client.db('MobileCandyDB').collection('paymentsItem')
     // create json web token 
     app.get('/jwt', async (req, res) => {
         const userEmail = req.query.email
@@ -241,6 +241,33 @@ async function run() {
         res.send({
             clientSecret: paymentIntent.client_secret,
         });
+    })
+
+
+    app.post('/booked/payments', async (req, res) => {
+        const paymentProducts = req.body
+        const bookId = paymentProducts.bookedProductId
+        const prodid = paymentProducts.productId
+        const option = {upsert: true}
+        const filter = {
+            _id: ObjectId(bookId)
+        }
+
+        const filterProd = {
+            _id: ObjectId(prodid)
+        }
+        const updateDoc = {
+            $set: {
+                availibility: false,
+                transaction: paymentProducts.transactionId,
+                status: 'sold'
+            }
+        }
+
+        const product = await Products.updateOne(filterProd, updateDoc, option)
+        const bookedprd = await Bookings.updateOne(filter, updateDoc, option)
+        const result  = await PaymentsItem.insertOne(paymentProducts)
+        res.send(result)
     })
 
 }
