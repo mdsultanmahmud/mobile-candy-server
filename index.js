@@ -57,6 +57,7 @@ async function run() {
     const AdvertisedProducts = client.db('MobileCandyDB').collection('advertisedProducts')
     const Bookings = client.db('MobileCandyDB').collection('bookings')
     const PaymentsItem = client.db('MobileCandyDB').collection('paymentsItem')
+    const ReportedItems = client.db('MobileCandyDB').collection('reportedItems')
     // create json web token 
     app.get('/jwt', async (req, res) => {
         const userEmail = req.query.email
@@ -187,6 +188,15 @@ async function run() {
     app.get('/productsAdvertised', async (req, res) => {
         const query = {}
         const result = await AdvertisedProducts.find(query).toArray()
+        const products = await Products.find(query).toArray()
+        // let soldItem = products.filter(prd => prd?.status === 'sold');
+        // let paidItem;
+        // soldItem.map(advro =>{
+        //     console.log(advro.availibility)
+        //     paidItem = result.filter(sld => sld.availibility !== advro.availibility)
+        // })
+
+        // // const availableItem = result
         res.send(result)
     })
 
@@ -229,7 +239,6 @@ async function run() {
         const bookedPr = req.body
         const price = bookedPr.price
         const amount = price * 100
-        console.log(amount)
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
             currency: "usd",
@@ -248,7 +257,7 @@ async function run() {
         const paymentProducts = req.body
         const bookId = paymentProducts.bookedProductId
         const prodid = paymentProducts.productId
-        const option = {upsert: true}
+        const option = { upsert: true }
         const filter = {
             _id: ObjectId(bookId)
         }
@@ -266,7 +275,33 @@ async function run() {
 
         const product = await Products.updateOne(filterProd, updateDoc, option)
         const bookedprd = await Bookings.updateOne(filter, updateDoc, option)
-        const result  = await PaymentsItem.insertOne(paymentProducts)
+        const result = await PaymentsItem.insertOne(paymentProducts)
+        res.send(result)
+    })
+
+
+    // reported a product
+    app.post('/reported', async (req, res) => {
+        const reported = req.body
+        const query = {
+            email: reported.email,
+            productId: reported. productId
+        }
+        const items = await ReportedItems.findOne(query)
+        if(items){
+            return res.send({
+                acknowledged: false,
+                message: 'You have already reported this product!'
+            })
+        }
+        const result = await ReportedItems.insertOne(reported)
+        res.send(result)
+    })
+
+    // get reported item 
+    app.get('/reported', async(req, res) =>{
+        const query = {}
+        const result = await ReportedItems.find(query).toArray()
         res.send(result)
     })
 
