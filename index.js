@@ -305,6 +305,15 @@ async function run() {
         res.send(result)
     })
 
+    app.delete('/reported/:id', async(req, res) =>{
+        const id = req.params.id 
+        const query = {
+            _id: ObjectId(id)
+        }
+        const result = await ReportedItems.deleteOne(query)
+        res.send(result)
+    })
+
 }
 
 run().catch(e => console.log(e))
