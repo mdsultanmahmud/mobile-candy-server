@@ -1,10 +1,11 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const port = process.env.PORT || 5000
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
 
-require('dotenv').config()
+
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // middlewear 
@@ -140,6 +141,7 @@ async function run() {
             _id: ObjectId(id)
         }
         const result = await Categories.findOne(query)
+        console.log(result.length)
         res.send(result)
     })
     // post a products
@@ -153,9 +155,11 @@ async function run() {
     app.get('/products', async (req, res) => {
         const categoryName = req.query.category
         const query = {
-            category: categoryName
+            category: categoryName,
+            availibility: true
         }
         const result = await Products.find(query).toArray()
+        console.log(result.length)
         res.send(result)
     })
 
@@ -186,17 +190,10 @@ async function run() {
 
     // get advertised items list 
     app.get('/productsAdvertised', async (req, res) => {
-        const query = {}
+        const query = {
+            availibility: true
+        }
         const result = await AdvertisedProducts.find(query).toArray()
-        const products = await Products.find(query).toArray()
-        // let soldItem = products.filter(prd => prd?.status === 'sold');
-        // let paidItem;
-        // soldItem.map(advro =>{
-        //     console.log(advro.availibility)
-        //     paidItem = result.filter(sld => sld.availibility !== advro.availibility)
-        // })
-
-        // // const availableItem = result
         res.send(result)
     })
 
@@ -251,8 +248,6 @@ async function run() {
             clientSecret: paymentIntent.client_secret,
         });
     })
-
-
     app.post('/booked/payments', async (req, res) => {
         const paymentProducts = req.body
         const bookId = paymentProducts.bookedProductId
@@ -261,7 +256,6 @@ async function run() {
         const filter = {
             _id: ObjectId(bookId)
         }
-
         const filterProd = {
             _id: ObjectId(prodid)
         }
@@ -273,8 +267,13 @@ async function run() {
             }
         }
 
+        const adv = {
+            productId: prodid
+        }
+
         const product = await Products.updateOne(filterProd, updateDoc, option)
         const bookedprd = await Bookings.updateOne(filter, updateDoc, option)
+        const advertises = await AdvertisedProducts.updateOne(adv, updateDoc, option)
         const result = await PaymentsItem.insertOne(paymentProducts)
         res.send(result)
     })
@@ -285,10 +284,10 @@ async function run() {
         const reported = req.body
         const query = {
             email: reported.email,
-            productId: reported. productId
+            productId: reported.productId
         }
         const items = await ReportedItems.findOne(query)
-        if(items){
+        if (items) {
             return res.send({
                 acknowledged: false,
                 message: 'You have already reported this product!'
@@ -299,14 +298,14 @@ async function run() {
     })
 
     // get reported item 
-    app.get('/reported', async(req, res) =>{
+    app.get('/reported', async (req, res) => {
         const query = {}
         const result = await ReportedItems.find(query).toArray()
         res.send(result)
     })
 
-    app.delete('/reported/:id', async(req, res) =>{
-        const id = req.params.id 
+    app.delete('/reported/:id', async (req, res) => {
+        const id = req.params.id
         const query = {
             _id: ObjectId(id)
         }
