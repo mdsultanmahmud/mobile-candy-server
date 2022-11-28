@@ -153,7 +153,7 @@ async function run() {
         res.send(result)
     })
     // post a products
-    app.post('/products', async (req, res) => {
+    app.post('/products',verifyJWT, async (req, res) => {
         const product = req.body
         const result = await Products.insertOne(product)
         res.send(result)
@@ -187,11 +187,29 @@ async function run() {
         const result = await Products.find(filter).toArray()
         res.send(result)
     })
+    app.delete('/products/:id', async(req, res) =>{
+        const id = req.params.id
+        const query = {
+            _id: ObjectId(id)
+        }
+        const result = await Products.deleteOne(query)
+        res.send(result)
+    })
 
     // make a product advertsed
 
     app.post('/productsAdvertised', async (req, res) => {
         const advertisedPro = req.body
+        console.log(advertisedPro)
+        const filter = {
+            productId: advertisedPro.productId
+        }
+        const existPro = await AdvertisedProducts.findOne(filter)
+        if(existPro){
+            return res.send({
+                acknowledged: false
+            })
+        }
         const result = await AdvertisedProducts.insertOne(advertisedPro)
         res.send(result)
     })
