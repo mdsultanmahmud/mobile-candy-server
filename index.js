@@ -94,6 +94,14 @@ async function run() {
         const user = await Users.findOne(filter)
         res.send(user)
     })
+    app.delete('/users/:id', async (req, res) => {
+        const id = req.params.id
+        const query = {
+            _id: ObjectId(id)
+        }
+        const result = await Users.deleteOne(query)
+        res.send(result)
+    })
     // get all sellers 
     app.get('/sellers', async (req, res) => {
         const query = {
